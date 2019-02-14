@@ -11,7 +11,8 @@ CREATE TABLE student (
 
 CREATE TABLE registers (
     temail VARCHAR(256) REFERENCES teacher(email),
-    semail VARCHAR(256) REFERENCES student(email)
+    semail VARCHAR(256) REFERENCES student(email),
+    PRIMARY KEY (temail, semail)
 )
 
 INSERT INTO teacher(`email`) VALUES('teacheralice@gmail.com');

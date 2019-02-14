@@ -3,6 +3,7 @@ from flask_restful import Resource, Api
 from flaskext.mysql import MySQL
 
 from api.RegisterStudent import RegisterStudent
+from api.GetCommonStudents import GetCommonStudents
 
 app = Flask(__name__)
 
@@ -51,15 +52,15 @@ first = {
 #     return "ccc"
 
 # Success 200
-@app.route("/api/commonstudents", methods=['GET'])
-def get_common_students():
-    conn = mysql.connect()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * from registers")
-    res = cursor.fetchall()
-    print(res)
-    conn.close()
-    return "common_students"
+# @app.route("/api/commonstudents", methods=['GET'])
+# def get_common_students():
+#     conn = mysql.connect()
+#     cursor = conn.cursor()
+#     cursor.execute("SELECT * from registers")
+#     res = cursor.fetchall()
+#     print(res)
+#     conn.close()
+#     return "common_students"
 
 
 
@@ -107,6 +108,7 @@ def get_tasks():
 
 
 api.add_resource(RegisterStudent, '/api/register', resource_class_kwargs={'db': mysql})
+api.add_resource(GetCommonStudents, '/api/commonstudents', resource_class_kwargs={'db': mysql})
 
 if __name__ == "__main__":
     app.run(debug=True)
