@@ -1,14 +1,21 @@
 from flask import Flask, jsonify
+from flask_restful import Resource, Api
 from flaskext.mysql import MySQL
 
+from api.RegisterStudent import RegisterStudent
+
 app = Flask(__name__)
+
 mysql = MySQL()
+
 app.config['MYSQL_DATABASE_HOST'] = 'localhost'
 app.config['MYSQL_DATABASE_USER'] = 'govtech'
 app.config['MYSQL_DATABASE_PASSWORD'] = 'password'
 app.config['MYSQL_DATABASE_DB'] = 'database'
+
 mysql.init_app(app)
 
+api = Api(app)
 
 
 # cursor.execute("SELECT * from teacher")
@@ -25,28 +32,27 @@ first = {
 }
 
 # Success 204
-@app.route("/api/register", methods=['GET', 'POST'])
-def register():
-    # query = 'INSERT INTO registers(temail, semail) VALUES(' + '\'teacherken@gmail.com\'' + ',' + '\'studentjon@gmail.com\'' + ')'
-    conn = mysql.connect()
-    cursor = conn.cursor()
+# @app.route("/api/register", methods=['GET', 'POST'])
+# def register():
+#     conn = mysql.connect()
+#     cursor = conn.cursor()
 
-    query = ('INSERT INTO registers(temail, semail) VALUES (%s, %s)')
-    data1 = ('teacherken@gmail.com', 'studentjon@gmail.com')
-    data2 = ('teacherken@gmail.com', 'studenthon@gmail.com')
-    result = cursor.execute(query, data1)
-    result = cursor.execute(query, data2)
-    conn.commit()
+#     query = ('INSERT INTO registers(temail, semail) VALUES (%s, %s)')
+#     data1 = ('teacherken@gmail.com', 'studentjon@gmail.com')
+#     data2 = ('teacherken@gmail.com', 'studenthon@gmail.com')
+#     result = cursor.execute(query, data1)
+#     result = cursor.execute(query, data2)
+#     conn.commit()
 
-    cursor.execute("SELECT * from registers")
-    res = cursor.fetchall()
-    print(res)
-    conn.close()
-    return "ccc"
+#     cursor.execute("SELECT * from registers")
+#     res = cursor.fetchall()
+#     print(res)
+#     conn.close()
+#     return "ccc"
 
 # Success 200
 @app.route("/api/commonstudents", methods=['GET'])
-def retrieve_common_students():
+def get_common_students():
     conn = mysql.connect()
     cursor = conn.cursor()
     cursor.execute("SELECT * from registers")
@@ -100,7 +106,7 @@ def get_tasks():
 
 
 
-
+api.add_resource(RegisterStudent, '/api/register', resource_class_kwargs={'db': mysql})
 
 if __name__ == "__main__":
     app.run(debug=True)
