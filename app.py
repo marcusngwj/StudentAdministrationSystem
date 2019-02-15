@@ -5,6 +5,7 @@ from flaskext.mysql import MySQL
 from api.RegisterStudent import RegisterStudent
 from api.GetCommonStudents import GetCommonStudents
 from api.SuspendStudent import SuspendStudent
+from api.GetStudentsForNotification import GetStudentsForNotification
 
 app = Flask(__name__)
 
@@ -49,6 +50,7 @@ def get_tasks():
 api.add_resource(RegisterStudent, '/api/register', resource_class_kwargs={'db': mysql})
 api.add_resource(GetCommonStudents, '/api/commonstudents', resource_class_kwargs={'db': mysql})
 api.add_resource(SuspendStudent, '/api/suspend', resource_class_kwargs={'db': mysql})
+api.add_resource(GetStudentsForNotification, '/api/retrievefornotifications', resource_class_kwargs={'db': mysql})
 
 if __name__ == "__main__":
     app.run(debug=True)
