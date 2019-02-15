@@ -2,7 +2,7 @@
 \> virtualenv env
 
 ### Activate virtual environment
-\> \env\Scripts\activate.bat
+\> env\Scripts\activate.bat
 
 ### Deactivate virtual environment
 \> deactivate
