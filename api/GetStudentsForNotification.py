@@ -1,3 +1,4 @@
+from flask import jsonify
 from flask_restful import Resource, reqparse
 from flaskext.mysql import MySQL
 import re
@@ -7,32 +8,41 @@ class GetStudentsForNotification(Resource):
         self.db = db
 
     def post(self):
-        conn = self.db.connect()
-        cursor = conn.cursor()
+        def getArgsFromRequest():
+            parser = reqparse.RequestParser()
+            parser.add_argument('teacher', type=str, required=True, help='Teacher is required to post a message')
+            parser.add_argument('notification', type=str)
+            args = parser.parse_args()
+            return args
 
-        parser = reqparse.RequestParser()
-        parser.add_argument('teacher', type=str, required=True, help='Teacher is required')
-        parser.add_argument('notification', type=str)
-        args = parser.parse_args()
+        def extractEmailFromString(string):
+            mentionedPatternStr = '@(?:[a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*|"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])'
+            p = re.compile(mentionedPatternStr)
+            return [x[1:] for x in p.findall(notiMsg)] # Remove @ from email
 
+        def getStudentsRegisteredUnderTeacher(database, teacher):
+            conn = database.connect()
+            cursor = conn.cursor()
+            query = ('SELECT semail FROM registers WHERE temail=%s')
+            cursor.execute(query, teacher)
+            conn.close()
+            return [x[0] for x in cursor.fetchall()]
+
+        # Parse argument from request
+        args = getArgsFromRequest()
         teacher = args['teacher']
         notiMsg = args['notification']
 
-        mentionedPatternStr = '@(?:[a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*|"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])'
-        p = re.compile(mentionedPatternStr)
-        studentsInMention = p.findall(notiMsg)
+        # Extract students that are mentioned in the notification
+        studentsInMention = extractEmailFromString(notiMsg)
 
-        query = ('SELECT semail FROM registers WHERE temail=%s')
-        cursor.execute(query, teacher)
-        regStudents = [x[0] for x in cursor.fetchall()]
+        # Get all students registered under the teacher
+        regStudents = getStudentsRegisteredUnderTeacher(self.db, teacher)
 
-        receivingStudents = set(regStudents + [x[1:] for x in studentsInMention])
-
-        print(receivingStudents)
-
-
-        conn.close()
-        return ('Success', '204')
+        #Merge results and remove duplicates
+        recipients = list(set(regStudents + studentsInMention))
+        
+        return jsonify({'recipients': recipients})
 
     def get(self):
         return "This is strictly a post api"
