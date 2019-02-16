@@ -9,6 +9,15 @@ def isTeacherExist(database, teacher):
     conn.close()
     return result
 
+def isStudentExist(database, student):
+    conn = database.connect()
+    cursor = conn.cursor()
+    query = ('SELECT 1 FROM student WHERE email=%s')
+    cursor.execute(query, student)
+    result = cursor.fetchone() is not None if True else False
+    conn.close()
+    return result
+
 def isStudentSuspended(database, student):
     conn = database.connect()
     cursor = conn.cursor()
@@ -25,3 +34,11 @@ def getUnsuspendedStudentsRegisteredUnderTeacher(database, teacher):
     cursor.execute(query, teacher)
     conn.close()
     return [x[0] for x in cursor.fetchall()]
+
+def suspendStudent(database, student):
+    conn = database.connect()
+    cursor = conn.cursor()
+    query = ('UPDATE student SET isSuspended=1 WHERE email=%s')
+    result = cursor.execute(query, student)
+    conn.commit()
+    conn.close()
