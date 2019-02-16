@@ -1,4 +1,4 @@
-from flask import jsonify, Response
+from flask import jsonify
 from flask_restful import Resource, reqparse
 from flaskext.mysql import MySQL
 import re
@@ -29,7 +29,7 @@ class GetStudentsForNotification(Resource):
             
             return jsonify({'recipients': recipients})
         else:
-            return Response("{'message': 'Teacher is required not included. Please include a teacher'}", status=400, mimetype='application/json')
+            return ({'message': 'Teacher is required not included. Please include a teacher'}, 400)
 
     def get(self):
         return "This is strictly a post api"
