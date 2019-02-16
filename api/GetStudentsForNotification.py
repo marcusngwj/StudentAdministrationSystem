@@ -1,7 +1,8 @@
-from flask import jsonify
+from flask import jsonify, Response
 from flask_restful import Resource, reqparse
 from flaskext.mysql import MySQL
 import re
+from db import *
 
 class GetStudentsForNotification(Resource):
     def __init__(self, db):
@@ -13,16 +14,22 @@ class GetStudentsForNotification(Resource):
         teacher = args['teacher']
         notiMsg = args['notification']
 
-        # Extract students that are mentioned in the notification
-        studentsInMention = self.extractEmailFromString(notiMsg)
+        if isTeacherExist(self.db, teacher):
+            allStudents = []
 
-        # Get all students registered under the teacher
-        regStudents = self.getStudentsRegisteredUnderTeacher(self.db, teacher)
+            # Extract students that are mentioned in the notification and not suspended
+            studentsInMention = self.extractEmailFromString(notiMsg)
+            studentsInMention = self.getUnsuspendedStudents(studentsInMention)
 
-        #Merge results and remove duplicates
-        recipients = list(set(regStudents + studentsInMention))
-        
-        return jsonify({'recipients': recipients})
+            # Get all students registered under the teacher
+            regStudents = getUnsuspendedStudentsRegisteredUnderTeacher(self.db, teacher)
+
+            #Merge results and remove duplicates
+            recipients = list(set(regStudents + studentsInMention))
+            
+            return jsonify({'recipients': recipients})
+        else:
+            return Response("{'message': 'Teacher is required not included. Please include a teacher'}", status=400, mimetype='application/json')
 
     def get(self):
         return "This is strictly a post api"
@@ -39,10 +46,9 @@ class GetStudentsForNotification(Resource):
         p = re.compile(mentionedPatternStr)
         return [x[1:] for x in p.findall(string)] # Remove @ from email
 
-    def getStudentsRegisteredUnderTeacher(self, database, teacher):
-        conn = database.connect()
-        cursor = conn.cursor()
-        query = ('SELECT semail FROM registers WHERE temail=%s')
-        cursor.execute(query, teacher)
-        conn.close()
-        return [x[0] for x in cursor.fetchall()]
+    def getUnsuspendedStudents(self, allStudents):
+        result = []
+        for student in allStudents:
+            if not isStudentSuspended(self.db, student):
+                result.append(student)
+        return result
