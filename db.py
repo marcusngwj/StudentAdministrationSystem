@@ -18,6 +18,16 @@ def isStudentExist(database, student):
     conn.close()
     return result
 
+def insertIntoRegister(database, teacher, student):
+    conn = database.connect()
+    cursor = conn.cursor()
+    query = ('INSERT INTO registers(temail, semail) VALUES (%s, %s)')
+    data = (teacher, student)
+    cursor.execute(query, data)
+    result = cursor.fetchone() is not None if True else False
+    conn.close()
+    return result
+
 def isStudentSuspended(database, student):
     conn = database.connect()
     cursor = conn.cursor()
