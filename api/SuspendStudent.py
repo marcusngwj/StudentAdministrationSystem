@@ -1,5 +1,4 @@
 from flask_restful import Resource, reqparse
-from flaskext.mysql import MySQL
 from db import *
 
 class SuspendStudent(Resource):
@@ -14,11 +13,8 @@ class SuspendStudent(Resource):
         else:
             return ({'message': 'Student does not exist'}, 400)
 
-    def get(self):
-        return "This is strictly a post api"
-
     def getArgsFromRequest(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('student', type=str, required=True, help='Student is required')
+        parser.add_argument('student', type=str, required=True, help='Invalid Format - Student is required')
         args = parser.parse_args()
         return args

@@ -1,5 +1,3 @@
-from flaskext.mysql import MySQL
-
 from sqlalchemy import create_engine, MetaData, Table
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import exc
@@ -42,14 +40,11 @@ def isStudentSuspended(student):
     session.close()
     return result is not None if True else False
 
-# def isStudentSuspended(database, student):
-#     conn = database.connect()
-#     cursor = conn.cursor()
-#     query = ('SELECT 1 FROM student WHERE email=%s AND isSuspended=1')
-#     cursor.execute(query, student)
-#     result = cursor.fetchone() is not None if True else False
-#     conn.close()
-#     return result
+def getStudentsUnderTeacher(teacher):
+    session = Session()
+    result = session.query(registerTbl.c.semail).join(studentTbl, registerTbl.c.semail==studentTbl.c.email).filter(registerTbl.c.temail==teacher).all()
+    session.close()
+    return [i[0] for i in result]
 
 def getUnsuspendedStudentsRegisteredUnderTeacher(teacher):
     session = Session()
@@ -57,29 +52,9 @@ def getUnsuspendedStudentsRegisteredUnderTeacher(teacher):
     session.close()
     return [i[0] for i in result]
 
-# def getUnsuspendedStudentsRegisteredUnderTeacher(database, teacher):
-#     conn = database.connect()
-#     cursor = conn.cursor()
-#     query = ('SELECT r.semail FROM registers r, student s WHERE r.semail=s.email AND r.temail=%s AND s.isSuspended!=1')
-#     cursor.execute(query, teacher)
-#     conn.close()
-#     return [x[0] for x in cursor.fetchall()]
-
 def suspendStudent(student):
     conn = engine.connect()
     stmt = studentTbl.update().values(isSuspended=1).where(studentTbl.c.email==student)
     conn.execute(stmt)
     conn.close
-
-# def getCommonStudentFromTeachers(teachers):
-#     session = Session()
-#     query = None
-#     for i in range(len(teachers)):
-#         if i==0:
-#             query = session.query(registerTbl).filter(registerTbl.c.temail==teachers[0])
-#         else:
-#             currQuery = session.query(registerTbl).filter(registerTbl.c.temail==teachers[i])
-#             query = query.intersect(currQuery)
-#     return query.all()
-
         

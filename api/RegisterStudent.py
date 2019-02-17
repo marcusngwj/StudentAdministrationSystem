@@ -1,5 +1,4 @@
 from flask_restful import Resource, reqparse
-from flaskext.mysql import MySQL
 from db import *
 from error import CustomError
 
@@ -24,9 +23,6 @@ class RegisterStudent(Resource):
                 return ({'message': e.toString()}, 400)            
         else:
             return ({'message': 'Some students do not exist in the database'}, 400) 
-
-    def get(self):
-        return "This is strictly a post api"
 
     def getArgsFromRequest(self):
         parser = reqparse.RequestParser()

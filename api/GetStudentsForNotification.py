@@ -1,5 +1,4 @@
 from flask_restful import Resource, reqparse
-from flaskext.mysql import MySQL
 import re
 from db import *
 
@@ -25,15 +24,12 @@ class GetStudentsForNotification(Resource):
             
             return ({'recipients': recipients}, 200)
         else:
-            return ({'message': 'Teacher is required not included. Please include a teacher'}, 400)
-
-    def get(self):
-        return "This is strictly a post api"
+            return ({'message': 'Teacher is missing. Please include a teacher'}, 400)
 
     def getArgsFromRequest(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('teacher', type=str, required=True, help='Teacher is required to post a message')
-        parser.add_argument('notification', type=str)
+        parser.add_argument('teacher', type=str, required=True, help='Invalid Format - Teacher is required to post a message')
+        parser.add_argument('notification', type=str, required=True, help='Invalid Format - Notification is required to post a message')
         args = parser.parse_args()
         return args
 

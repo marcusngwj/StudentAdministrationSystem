@@ -1,0 +1,91 @@
+# Register students
+
+*Clear table registers before each test
+
+### Positive Test - Teacher Exist; Multiple Valid students
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacherken@gmail.com\",\"students\":[\"studentjon@gmail.com\",\"studenthon@gmail.com\"]}" http://127.0.0.1:5000/api/register
+
+### Positive Test - Teacher Exist; One valid student
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacherken@gmail.com\",\"students\":[\"studentbob@gmail.com\"]}" http://127.0.0.1:5000/api/register
+
+### Positive Test - Same student registered under different teacher
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacherken@gmail.com\",\"students\":[\"studentwendy@gmail.com\"]}" http://127.0.0.1:5000/api/register
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacheralice@gmail.com\",\"students\":[\"studentwendy@gmail.com\"]}" http://127.0.0.1:5000/api/register
+
+### Negative Test - Empty teacher; Valid students
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"\",\"students\":[\"studentjon@gmail.com\",\"studenthon@gmail.com\"]}" http://127.0.0.1:5000/api/register
+
+### Negative Test - Teacher missing; Valid students
+curl -i -H "Content-Type: application/json" -X POST -d "{\"students\":[\"studentjon@gmail.com\",\"studenthon@gmail.com\"]}" http://127.0.0.1:5000/api/register
+
+### Negative Test - Valid Teacher; Empty student
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacherken@gmail.com\",\"students\":[]}" http://127.0.0.1:5000/api/register
+
+### Negative Test - Valid Teacher; Student key missing
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacherken@gmail.com\"}" http://127.0.0.1:5000/api/register
+
+# Retrieve Common Students
+
+*Run the insert sql statements given in schema.sql file
+
+### Positive Test - Each teacher has more than 1 student, but only 1 student in common
+http://127.0.0.1:5000/api/commonstudents?teacher=teacher1_with_common_student1%40gmail.com&teacher=teacher2_with_common_student1%40gmail.com
+
+### Positive Test - Only 1 teacher for comparison
+http://127.0.0.1:5000/api/commonstudents?teacher=teacher1_with_common_student1%40gmail.com
+
+### Positive Test - Teachers with no students in common
+http://127.0.0.1:5000/api/commonstudents?teacher=teacherken%40gmail.com&teacher=teacheralice%40gmail.com
+
+### Positive Test - Empty Parameter
+http://127.0.0.1:5000/api/commonstudents
+
+# Suspend student
+
+### Positive Test - Student exist
+curl -i -H "Content-Type: application/json" -X POST -d "{\"student\":\"studentmary@gmail.com\"}" http://127.0.0.1:5000/api/suspend
+
+### Negative Test - Student does not exist
+curl -i -H "Content-Type: application/json" -X POST -d "{\"student\":\"studentrrr@gmail.com\"}" http://127.0.0.1:5000/api/suspend
+
+### Negative Test - Student key is empty
+curl -i -H "Content-Type: application/json" -X POST -d "{\"student\":\"\"}" http://127.0.0.1:5000/api/suspend
+
+### Negative Test - body is empty
+curl -i -H "Content-Type: application/json" -X POST -d "{}" http://127.0.0.1:5000/api/suspend
+
+# Test case for Notification
+
+*Clear suspension in student table before running test
+
+### Positive Test - Has teacher & teacher exist in db; Has student and student exist in db and not suspended and no repeated student in mention and registered
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacherken@gmail.com\",\"notification\":\"Hello students! @studentgrace@gmail.com @studentmiche@gmail.com\"}" http://127.0.0.1:5000/api/retrievefornotifications
+
+### Positive Test - Has teacher & teacher exist in db; Has student and student exist in db and not suspended and no repeated student in mention and registered
+Expect - No duplicates
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacherken@gmail.com\",\"notification\":\"Hello students! @studentbob@gmail.com @studentagnes@gmail.com\"}" http://127.0.0.1:5000/api/retrievefornotifications
+
+### Positive Test - Has teacher & teacher exist in db; Notification has mention of student. Teacher does not have student registered under him
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacher_no_student@gmail.com\",\"notification\":\"Hello students! @studentagnes@gmail.com @studentmiche@gmail.com\"}" http://127.0.0.1:5000/api/retrievefornotifications
+
+### Positive Test - Has teacher & teacher exist in db; Notification has student who is suspended.
+* Suspend studentbob before running test
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacherken@gmail.com\",\"notification\":\"Hello students! @studentagnes@gmail.com @studentmiche@gmail.com @studentmary@gmail.com\"}" http://127.0.0.1:5000/api/retrievefornotifications
+
+### Positive Test - Has teacher & teacher exist in db; Notification has no mention of student. Teacher does have students registered under him
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacherken@gmail.com\",\"notification\":\"Thank you for the opportunity.\"}" http://127.0.0.1:5000/api/retrievefornotifications
+
+### Positive Test - Has teacher & teacher exist in db; Notification has no mention of student. Teacher does not have student registered under him
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacher_no_student@gmail.com\",\"notification\":\"Thank you for the opportunity.\"}" http://127.0.0.1:5000/api/retrievefornotifications
+
+### Positive Test - Empty Notification
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacherken@gmail.com\",\"notification\":\"\"}" http://127.0.0.1:5000/api/retrievefornotifications
+
+### Negative Test - Empty request
+curl -i -H "Content-Type: application/json" -X POST -d "{}" http://127.0.0.1:5000/api/retrievefornotifications
+
+### Negative Test - Empty Teacher
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"\",\"notification\":\"Hello students! @studentgrace@gmail.com @studentmiche@gmail.com\"}" http://127.0.0.1:5000/api/retrievefornotifications
+
+### Negative Test - Has teacher & teacher exist in db but no notification
+curl -i -H "Content-Type: application/json" -X POST -d "{\"teacher\":\"teacherken@gmail.com\"}" http://127.0.0.1:5000/api/retrievefornotifications
