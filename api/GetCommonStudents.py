@@ -1,19 +1,31 @@
 from flask import request
 from flask_restful import Resource
-from flaskext.mysql import MySQL
+
+from sqlalchemy import create_engine, MetaData, Table
+from db import *
 
 class GetCommonStudents(Resource):
-    def __init__(self, db):
-        self.db = db
-
     def get(self):
-        conn = self.db.connect()
-        cursor = conn.cursor()
-
         teachers = request.args.getlist('teacher')
 
-        print(teachers)
-        
+        if not self.areAllTeacherExist(teachers):
+            return ({'message': 'Some teachers do not exist in the database'}, 400) 
+        else:
+            students = self.getCommonStudentsAmongTeachers(teachers)
+            return ({'students':students}, 200)
 
-        conn.close()
-        return "66"
+    def areAllTeacherExist(self, teachers):
+        for teacher in teachers:
+            if not isTeacherExist(teacher):
+                return False
+        return True
+
+    def getCommonStudentsAmongTeachers(self, teachers):
+        students = set([])
+        for i in range(len(teachers)):
+            if i==0:
+                students = set(getStudentsUnderTeacher(teachers[0]))
+            else:
+                newGroup = set(getStudentsUnderTeacher(teachers[i]))
+                students = students.intersection(newGroup)
+        return list(students)
