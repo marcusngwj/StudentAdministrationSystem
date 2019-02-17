@@ -1,33 +1,29 @@
-from flask import jsonify
 from flask_restful import Resource, reqparse
 from flaskext.mysql import MySQL
 import re
 from db import *
 
 class GetStudentsForNotification(Resource):
-    def __init__(self, db):
-        self.db = db
-
     def post(self):
         # Parse argument from request
         args = self.getArgsFromRequest()
         teacher = args['teacher']
         notiMsg = args['notification']
 
-        if isTeacherExist(self.db, teacher):
+        if isTeacherExist(teacher):
             allStudents = []
 
             # Extract students that are mentioned in the notification and not suspended
             studentsInMention = self.extractEmailFromString(notiMsg)
             studentsInMention = self.getUnsuspendedStudents(studentsInMention)
 
-            # Get all students registered under the teacher
-            regStudents = getUnsuspendedStudentsRegisteredUnderTeacher(self.db, teacher)
+            # Get all unsuspended students registered under the teacher
+            regStudents = getUnsuspendedStudentsRegisteredUnderTeacher(teacher)
 
             #Merge results and remove duplicates
             recipients = list(set(regStudents + studentsInMention))
             
-            return jsonify({'recipients': recipients})
+            return ({'recipients': recipients}, 200)
         else:
             return ({'message': 'Teacher is required not included. Please include a teacher'}, 400)
 
@@ -49,6 +45,6 @@ class GetStudentsForNotification(Resource):
     def getUnsuspendedStudents(self, allStudents):
         result = []
         for student in allStudents:
-            if not isStudentSuspended(self.db, student):
+            if not isStudentSuspended(student):
                 result.append(student)
         return result

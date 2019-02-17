@@ -3,16 +3,13 @@ from flaskext.mysql import MySQL
 from db import *
 
 class SuspendStudent(Resource):
-    def __init__(self, db):
-        self.db = db
-
     def post(self):
         # Parse argument from request
         args = self.getArgsFromRequest()
         student = args['student']
 
-        if isStudentExist(self.db, student):
-            suspendStudent(self.db, student)
+        if isStudentExist(student):
+            suspendStudent(student)
             return ('Success', '204')
         else:
             return ({'message': 'Student does not exist'}, 400)

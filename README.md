@@ -24,3 +24,5 @@ Privilleges: <br>
 - [x] Show Databases
 - [x] Trigger
 - [x] Update 
+
+pip install mysqlclient==1.3.12
