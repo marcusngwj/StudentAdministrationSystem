@@ -32,4 +32,4 @@ Privilleges given: <br>
 Test cases can be found in `\tests\tests.txt`. 
 
 ## Comments
-This assignment has been very enriching for me. Given a short span of one week to work on this task amid my external commitments, this assignment has been a great challenge. This is my first time extensively working on the backend and I'm glad to be given this opportunity to work on this task. I had learn to use a new framework because I did not use any in the past. I chose flask because of its simplicity and it was easy to pick up.
+This assignment has been very enriching for me. Given a short span of one week to work on this task amid my external commitments, this assignment has been a great challenge. This is my first time extensively working on the backend and I'm glad to be given this opportunity to work on this task. I had learn to use a new framework because I did not use any in the past. I chose flask because of its simplicity and it was easy to pick up. If I had more time, I would like to learn and implement automatic unit testing.
