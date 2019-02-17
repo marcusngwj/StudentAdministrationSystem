@@ -1,43 +1,35 @@
-from flask import jsonify
 from flask_restful import Resource, reqparse
-from flaskext.mysql import MySQL
 import re
 from db import *
 
 class GetStudentsForNotification(Resource):
-    def __init__(self, db):
-        self.db = db
-
     def post(self):
         # Parse argument from request
         args = self.getArgsFromRequest()
         teacher = args['teacher']
         notiMsg = args['notification']
 
-        if isTeacherExist(self.db, teacher):
+        if isTeacherExist(teacher):
             allStudents = []
 
             # Extract students that are mentioned in the notification and not suspended
             studentsInMention = self.extractEmailFromString(notiMsg)
             studentsInMention = self.getUnsuspendedStudents(studentsInMention)
 
-            # Get all students registered under the teacher
-            regStudents = getUnsuspendedStudentsRegisteredUnderTeacher(self.db, teacher)
+            # Get all unsuspended students registered under the teacher
+            regStudents = getUnsuspendedStudentsRegisteredUnderTeacher(teacher)
 
             #Merge results and remove duplicates
             recipients = list(set(regStudents + studentsInMention))
             
-            return jsonify({'recipients': recipients})
+            return ({'recipients': recipients}, 200)
         else:
-            return ({'message': 'Teacher is required not included. Please include a teacher'}, 400)
-
-    def get(self):
-        return "This is strictly a post api"
+            return ({'message': 'Teacher is missing. Please include a teacher'}, 400)
 
     def getArgsFromRequest(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('teacher', type=str, required=True, help='Teacher is required to post a message')
-        parser.add_argument('notification', type=str)
+        parser.add_argument('teacher', type=str, required=True, help='Invalid Format - Teacher is required to post a message')
+        parser.add_argument('notification', type=str, required=True, help='Invalid Format - Notification is required to post a message')
         args = parser.parse_args()
         return args
 
@@ -49,6 +41,6 @@ class GetStudentsForNotification(Resource):
     def getUnsuspendedStudents(self, allStudents):
         result = []
         for student in allStudents:
-            if not isStudentSuspended(self.db, student):
+            if not isStudentSuspended(student):
                 result.append(student)
         return result
